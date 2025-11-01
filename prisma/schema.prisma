@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle utilisateur (professeur et élèves)
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(STUDENT)
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teacherProfile   TeacherProfile?
+  studentProfile   StudentProfile?
+  bookings         Booking[]
+  documents        Document[]
+  sentMessages     Message[]       @relation("MessageSender")
+  receivedMessages Message[]       @relation("MessageReceiver")
+
+  @@map("users")
+}
+
+// Profil professeur
+model TeacherProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  description String?
+  experience  String?
+  pricing     String?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects Subject[]
+  courses  Course[]
+
+  @@map("teacher_profiles")
+}
+
+// Profil élève
+model StudentProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  level       String?
+  preferences String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("student_profiles")
+}
+
+// Matières enseignées
+model Subject {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  teacherId   String
+
+  teacher  TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  courses  Course[]
+  bookings Booking[]
+
+  @@map("subjects")
+}
+
+// Créneaux de cours
+model Course {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int // en minutes
+  maxStudents Int         @default(1)
+  price       Float?
+  location    String?
+  isOnline    Boolean     @default(false)
+  status      CourseStatus @default(AVAILABLE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  teacherId String
+  subjectId String
+
+  teacher  TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject  Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@map("courses")
+}
+
+// Réservations
+model Booking {
+  id           String        @id @default(cuid())
+  studentId    String
+  courseId     String
+  subjectId    String
+  duration     Int // en minutes
+  program      String? // programme spécifique demandé
+  notes        String? // notes additionnelles de l'élève
+  status       BookingStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  confirmedAt  DateTime?
+  completedAt  DateTime?
+
+  student   User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  documents Document[]
+  messages  Message[]
+
+  @@map("bookings")
+}
+
+// Documents uploadés
+model Document {
+  id          String      @id @default(cuid())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String
+  description String?
+  uploadedAt  DateTime    @default(now())
+
+  uploadedById String
+  bookingId    String?
+
+  uploadedBy User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@map("documents")
+}
+
+// Messages entre professeur et élèves
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  sentAt    DateTime @default(now())
+  read      Boolean  @default(false)
+
+  senderId   String
+  receiverId String
+  bookingId  String?
+
+  sender   User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@map("messages")
+}
+
+// Énumérations
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum CourseStatus {
+  AVAILABLE
+  BOOKED
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
