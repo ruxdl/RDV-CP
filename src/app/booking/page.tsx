@@ -64,15 +64,23 @@ export default function BookingPage() {
     }
 
     try {
-      // Simuler l'ID de l'élève (à remplacer par l'authentification réelle)
-      const studentId = 'marie@test.com' // Temporaire
+      // Récupérer l'ID de l'élève (temporaire - à remplacer par l'authentification réelle)
+      const { data: student } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', 'marie@test.com')
+        .single()
+
+      if (!student) {
+        throw new Error('Étudiant non trouvé')
+      }
 
       // Créer la réservation
       const { data: booking, error } = await supabase
         .from('bookings')
         .insert({
           course_id: selectedSlot,
-          student_id: studentId,
+          student_id: student.id,
           duration: parseInt(bookingData.duration),
           subject: bookingData.subject,
           notes: bookingData.notes,

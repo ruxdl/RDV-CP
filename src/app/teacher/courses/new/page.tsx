@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, BookOpen, Save } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function NewCoursePage() {
   const [formData, setFormData] = useState({
@@ -11,13 +12,53 @@ export default function NewCoursePage() {
     location: '',
     isOnline: false
   })
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Ici on enverrait les données à l'API
-    console.log('Nouveau créneau créé:', formData)
-    alert('Créneau créé avec succès!')
-    // Redirection vers le dashboard
+    if (!formData.date || !formData.time) {
+      alert('Veuillez remplir la date et l\'heure')
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Récupérer l'ID du professeur (temporaire - à remplacer par l'authentification réelle)
+      const { data: teacher } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', 'professor@test.com')
+        .single()
+
+      if (!teacher) {
+        throw new Error('Professeur non trouvé')
+      }
+
+      // Créer le nouveau créneau
+      const { data, error } = await supabase
+        .from('courses')
+        .insert({
+          teacher_id: teacher.id,
+          date: formData.date,
+          time: formData.time,
+          location: formData.isOnline ? 'En ligne' : formData.location,
+          is_online: formData.isOnline,
+          is_available: true
+        })
+        .select()
+
+      if (error) throw error
+
+      alert('Créneau créé avec succès!')
+      // Redirection vers le dashboard
+      window.location.href = '/teacher'
+    } catch (error) {
+      console.error('Erreur lors de la création du créneau:', error)
+      alert('Erreur lors de la création du créneau. Veuillez réessayer.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleInputChange = (field: string, value: any) => {
@@ -161,15 +202,26 @@ export default function NewCoursePage() {
                 <div className="space-y-3">
                   <button 
                     type="submit" 
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center"
+                    disabled={loading}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    Créer le créneau
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Création...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Créer le créneau
+                      </>
+                    )}
                   </button>
                   <Link href="/teacher">
                     <button 
                       type="button"
-                      className="w-full bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
+                      disabled={loading}
+                      className="w-full bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       Annuler
                     </button>
