@@ -24,38 +24,60 @@ export default function NewCoursePage() {
     setLoading(true)
     
     try {
+      console.log('🔍 Début de la création du créneau avec:', formData)
+      
       // Récupérer l'ID du professeur (temporaire - à remplacer par l'authentification réelle)
-      const { data: teacher } = await supabase
+      console.log('🔍 Recherche du professeur...')
+      const { data: teacher, error: teacherError } = await supabase
         .from('users')
         .select('id')
         .eq('email', 'professor@test.com')
         .single()
 
+      if (teacherError) {
+        console.error('❌ Erreur lors de la recherche du professeur:', teacherError)
+        throw teacherError
+      }
+
       if (!teacher) {
+        console.error('❌ Professeur non trouvé')
         throw new Error('Professeur non trouvé')
       }
 
+      console.log('✅ Professeur trouvé:', teacher)
+
+      // Préparer les données à insérer
+      const courseData = {
+        teacher_id: teacher.id,
+        date: formData.date,
+        time: formData.time,
+        location: formData.isOnline ? 'En ligne' : formData.location,
+        is_online: formData.isOnline,
+        is_available: true
+      }
+      
+      console.log('🔍 Données à insérer:', courseData)
+
       // Créer le nouveau créneau
+      console.log('🔍 Insertion du créneau...')
       const { data, error } = await supabase
         .from('courses')
-        .insert({
-          teacher_id: teacher.id,
-          date: formData.date,
-          time: formData.time,
-          location: formData.isOnline ? 'En ligne' : formData.location,
-          is_online: formData.isOnline,
-          is_available: true
-        })
+        .insert(courseData)
         .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erreur lors de l\'insertion:', error)
+        throw error
+      }
 
+      console.log('✅ Créneau créé avec succès:', data)
       alert('Créneau créé avec succès!')
       // Redirection vers le dashboard
       window.location.href = '/teacher'
     } catch (error) {
-      console.error('Erreur lors de la création du créneau:', error)
-      alert('Erreur lors de la création du créneau. Veuillez réessayer.')
+      console.error('❌ Erreur complète:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Erreur lors de la création du créneau: ${errorMessage}`)
     } finally {
       setLoading(false)
     }

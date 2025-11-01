@@ -68,7 +68,9 @@ CREATE POLICY "Users can update their own data" ON users FOR UPDATE USING (true)
 
 -- Politiques pour courses
 CREATE POLICY "Anyone can view available courses" ON courses FOR SELECT USING (is_available = true);
-CREATE POLICY "Teachers can manage their courses" ON courses FOR ALL USING (true);
+CREATE POLICY "Teachers can insert courses" ON courses FOR INSERT WITH CHECK (true);
+CREATE POLICY "Teachers can update their courses" ON courses FOR UPDATE USING (true);
+CREATE POLICY "Teachers can delete their courses" ON courses FOR DELETE USING (true);
 
 -- Politiques pour bookings
 CREATE POLICY "Users can view their own bookings" ON bookings FOR SELECT USING (true);
