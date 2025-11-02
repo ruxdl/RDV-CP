@@ -14,7 +14,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // NOUVELLE VERSION SIMPLIFIÉE - 2025-11-02-15h35
+  // VERSION FINALE SANS PHRASE - 2025-11-02-16h10
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -67,29 +67,26 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo simplifié */}
+        {/* Titre SANS sous-titre */}
         <div className="text-center mb-8">
           <div className="flex justify-center items-center mb-4">
             <BookOpen className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">🎓 Cours Particuliers</h1>
-          <p className="text-sm text-gray-500 mt-1">Version Simplifiée ✨</p>
+          <h1 className="text-2xl font-bold text-gray-900">Cours Particuliers</h1>
         </div>
 
-        {/* Formulaire ultra-simple */}
-        <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-blue-100">
-          <h2 className="text-lg font-semibold text-center mb-6 text-gray-800">Connexion</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Formulaire propre */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border-l-4 border-red-400 rounded text-red-700 text-sm">
-                ❌ {error}
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {error}
               </div>
             )}
             
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                📝 Identifiant
+                Identifiant
               </label>
               <input
                 id="username"
@@ -97,15 +94,15 @@ export default function AuthPage() {
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="Votre identifiant..."
+                placeholder="Votre identifiant"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                🔒 Mot de passe
+                Mot de passe
               </label>
               <input
                 id="password"
@@ -113,18 +110,18 @@ export default function AuthPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Votre mot de passe..."
+                placeholder="Votre mot de passe"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <button 
               type="submit" 
-              className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-200 disabled:opacity-50 font-semibold text-lg"
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? '⏳ Connexion...' : '🚀 Se connecter'}
+              {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
         </div>
