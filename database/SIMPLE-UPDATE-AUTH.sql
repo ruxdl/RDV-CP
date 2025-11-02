@@ -1,26 +1,15 @@
--- SCRIPT À EXÉCUTER UNIQUEMENT - Mise à jour de l'authentification
--- NE PAS exécuter la création des tables qui existent déjà !
+-- SCRIPT SIMPLIFIÉ - Mise à jour de l'authentification
+-- À exécuter dans Supabase si la contrainte existe déjà
 
--- 1. Ajouter les colonnes username et password
+-- 1. Ajouter les colonnes username et password (si elles n'existent pas)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255);
 
 -- 2. Supprimer la contrainte NOT NULL sur email (optionnel maintenant)
 ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
 
--- 3. Ajouter la contrainte unique sur username (avec gestion d'erreur améliorée)
-DO $$ 
-BEGIN
-    -- Vérifier si la contrainte existe déjà
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints 
-        WHERE constraint_name = 'users_username_key' 
-        AND table_name = 'users'
-        AND constraint_type = 'UNIQUE'
-    ) THEN
-        ALTER TABLE users ADD CONSTRAINT users_username_key UNIQUE (username);
-    END IF;
-END $$;
+-- 3. Ignorer la contrainte username (elle existe déjà)
+-- La contrainte users_username_key existe déjà, on continue
 
 -- 4. Mettre à jour les utilisateurs existants avec les nouveaux identifiants
 UPDATE users SET 
