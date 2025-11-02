@@ -14,8 +14,6 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // NOUVELLE VERSION SIMPLIFIÉE - 2025-11-02-15h35
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -30,6 +28,7 @@ export default function AuthPage() {
     setError('')
     
     try {
+      // Vérifier les identifiants dans Supabase
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
@@ -43,6 +42,7 @@ export default function AuthPage() {
         return
       }
 
+      // Stocker les informations utilisateur en localStorage
       localStorage.setItem('user', JSON.stringify({
         id: user.id,
         username: user.username,
@@ -51,6 +51,7 @@ export default function AuthPage() {
         role: user.role
       }))
 
+      // Rediriger selon le rôle
       if (user.role === 'teacher') {
         router.push('/prof')
       } else {
@@ -67,29 +68,30 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo simplifié */}
+        {/* Logo et titre */}
         <div className="text-center mb-8">
           <div className="flex justify-center items-center mb-4">
             <BookOpen className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">🎓 Cours Particuliers</h1>
-          <p className="text-sm text-gray-500 mt-1">Version Simplifiée ✨</p>
+          <h1 className="text-2xl font-bold text-gray-900">🔥 NOUVELLE VERSION - IDENTIFIANT</h1>
+          <p className="mt-2 text-gray-600">Plus besoin d'email, utilisez votre identifiant !</p>
         </div>
 
-        {/* Formulaire ultra-simple */}
-        <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-blue-100">
-          <h2 className="text-lg font-semibold text-center mb-6 text-gray-800">Connexion</h2>
+        {/* Formulaire */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-2">🆔 Connexion par IDENTIFIANT</h2>
+          <p className="text-gray-600 mb-6">Entrez votre IDENTIFIANT et mot de passe</p>
           
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border-l-4 border-red-400 rounded text-red-700 text-sm">
-                ❌ {error}
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {error}
               </div>
             )}
             
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                📝 Identifiant
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                🏷️ IDENTIFIANT (PAS EMAIL !)
               </label>
               <input
                 id="username"
@@ -97,14 +99,18 @@ export default function AuthPage() {
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="Votre identifiant..."
+                placeholder="🔤 Tapez votre IDENTIFIANT ici"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-3 py-2 border-2 border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-yellow-50"
+                style={{backgroundColor: '#fefce8', borderColor: '#3b82f6'}}
               />
+              <p className="text-xs text-blue-600 mt-1">
+                ℹ️ Utilisez votre identifiant : ruxdl, Hamza6E, ou ELISE4EEMMA1E
+              </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 🔒 Mot de passe
               </label>
               <input
@@ -113,20 +119,27 @@ export default function AuthPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Votre mot de passe..."
+                placeholder="🔐 Votre mot de passe"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-3 py-2 border-2 border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            <button 
-              type="submit" 
-              className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-200 disabled:opacity-50 font-semibold text-lg"
+            <button
+              type="submit"
               disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 font-bold"
             >
-              {loading ? '⏳ Connexion...' : '🚀 Se connecter'}
+              {loading ? '🔄 Connexion...' : '🚀 SE CONNECTER AVEC IDENTIFIANT'}
             </button>
           </form>
+          
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+            <p className="text-xs text-green-700">
+              ✅ <strong>Cette version utilise IDENTIFIANT au lieu d'email !</strong><br/>
+              🎯 Testez avec : ruxdl / MdpCPRDV6737 (après migration Supabase)
+            </p>
+          </div>
         </div>
       </div>
     </div>
