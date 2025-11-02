@@ -5,7 +5,10 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255);
 
--- 2. Ajouter la contrainte unique sur username (avec gestion d'erreur)
+-- 2. Supprimer la contrainte NOT NULL sur email (optionnel maintenant)
+ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+
+-- 3. Ajouter la contrainte unique sur username (avec gestion d'erreur)
 DO $$ 
 BEGIN
     BEGIN
@@ -17,7 +20,7 @@ BEGIN
     END;
 END $$;
 
--- 3. Mettre à jour les utilisateurs existants avec les nouveaux identifiants
+-- 4. Mettre à jour les utilisateurs existants avec les nouveaux identifiants
 UPDATE users SET 
     username = 'ruxdl', 
     password = 'MdpCPRDV6737' 
@@ -37,8 +40,8 @@ UPDATE users SET
     email = 'elise@test.com'
 WHERE email = 'paul@test.com';
 
--- 4. Supprimer l'utilisateur Sophie qui n'est plus nécessaire
+-- 5. Supprimer l'utilisateur Sophie qui n'est plus nécessaire
 DELETE FROM users WHERE email = 'sophie@test.com';
 
--- 5. Vérifier le résultat
+-- 6. Vérifier le résultat
 SELECT id, username, name, email, role FROM users ORDER BY role, name;
