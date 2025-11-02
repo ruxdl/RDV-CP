@@ -1,6 +1,8 @@
 -- Créer la table des utilisateurs
 CREATE TABLE users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
   role VARCHAR(10) CHECK (role IN ('teacher', 'student')) NOT NULL,
@@ -43,11 +45,10 @@ CREATE TABLE documents (
 );
 
 -- Insérer des données de test
-INSERT INTO users (email, name, role) VALUES
-('professor@test.com', 'Professeur Martin', 'teacher'),
-('marie@test.com', 'Marie Dupont', 'student'),
-('paul@test.com', 'Paul Bernard', 'student'),
-('sophie@test.com', 'Sophie Moreau', 'student');
+INSERT INTO users (username, password, email, name, role) VALUES
+('ruxdl', 'MdpCPRDV6737', 'professor@test.com', 'Professeur Martin', 'teacher'),
+('Hamza6E', 'MdpHamza6ET', 'hamza@test.com', 'Hamza', 'student'),
+('ELISE4EEMMA1E', 'MdpEE4E1E', 'elise@test.com', 'Elise', 'student');
 
 -- Insérer des créneaux de test
 INSERT INTO courses (teacher_id, date, time, location, is_online) VALUES

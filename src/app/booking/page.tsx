@@ -17,6 +17,7 @@ export default function BookingPage() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [availableSlots, setAvailableSlots] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [bookingData, setBookingData] = useState({
     duration: '60',
     subject: '',
@@ -26,6 +27,20 @@ export default function BookingPage() {
 
   // Charger les créneaux disponibles depuis Supabase
   useEffect(() => {
+    // Vérifier l'authentification
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      const user = JSON.parse(userData)
+      if (user.role !== 'student') {
+        window.location.href = '/auth'
+        return
+      }
+      setCurrentUser(user)
+    } else {
+      window.location.href = '/auth'
+      return
+    }
+    
     loadAvailableSlots()
   }, [])
 
@@ -63,24 +78,18 @@ export default function BookingPage() {
       return
     }
 
+    if (!currentUser) {
+      alert('Erreur d authentification')
+      return
+    }
+
     try {
-      // Récupérer l'ID de l'élève (temporaire - à remplacer par l'authentification réelle)
-      const { data: student } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', 'marie@test.com')
-        .single()
-
-      if (!student) {
-        throw new Error('Étudiant non trouvé')
-      }
-
-      // Créer la réservation
+      // Créer la réservation avec l'utilisateur connecté
       const { data: booking, error } = await supabase
         .from('bookings')
         .insert({
           course_id: selectedSlot,
-          student_id: student.id,
+          student_id: currentUser.id,
           duration: parseInt(bookingData.duration),
           subject: bookingData.subject,
           notes: bookingData.notes,
@@ -91,18 +100,17 @@ export default function BookingPage() {
 
       if (error) throw error
 
-      // Marquer le créneau comme non disponible
+      // Marquer le cours comme non disponible
       await supabase
         .from('courses')
         .update({ is_available: false })
         .eq('id', selectedSlot)
 
-      alert('Réservation confirmée !')
-      // Rediriger vers la page élève
+      alert('Réservation effectuée avec succès !')
       window.location.href = '/student'
     } catch (error) {
       console.error('Erreur lors de la réservation:', error)
-      alert('Erreur lors de la réservation. Veuillez réessayer.')
+      alert('Erreur lors de la réservation')
     }
   }
 

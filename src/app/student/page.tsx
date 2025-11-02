@@ -35,26 +35,29 @@ interface StudentBooking {
 export default function StudentPage() {
   const router = useRouter()
   const [bookings, setBookings] = useState<StudentBooking[]>([])
+  const [nextCourse, setNextCourse] = useState<StudentBooking | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Données de l'élève connecté
-  const userName = "Marie Dupont"  // À remplacer par les vraies données de l'utilisateur connecté
-  const userEmail = "marie@test.com"  // À remplacer par les vraies données de l'utilisateur connecté
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
-    loadStudentBookings()
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      const user = JSON.parse(userData)
+      setCurrentUser(user)
+      loadStudentBookings(user)
+    } else {
+      // Rediriger vers la page de connexion si pas d'utilisateur connecté
+      router.push('/auth')
+    }
   }, [])
 
-  const loadStudentBookings = async () => {
+  const loadStudentBookings = async (user?: any) => {
     try {
-      // Récupérer l'ID de l'étudiant
-      const { data: student } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', userEmail)
-        .single()
-
-      if (!student) return
+      const userToUse = user || currentUser
+      if (!userToUse) return
 
       // Récupérer les réservations avec les informations du cours
       const { data, error } = await supabase
@@ -66,21 +69,35 @@ export default function StudentPage() {
           notes,
           status,
           created_at,
-          course:courses (
-            id,
-            date,
-            time,
-            location,
-            is_online
-          )
+          course:courses(*)
         `)
-        .eq('student_id', student.id)
+        .eq('student_id', userToUse.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Erreur lors du chargement des réservations:', error)
+        setLoading(false)
+        return
+      }
+
       setBookings((data as any) || [])
+      
+      // Trouver le prochain cours
+      const now = new Date()
+      const upcomingBookings = (data as any)?.filter((booking: any) => {
+        const courseDate = new Date(booking.course.date + 'T' + booking.course.time)
+        return courseDate > now && booking.status !== 'cancelled'
+      }).sort((a: any, b: any) => {
+        const dateA = new Date(a.course.date + 'T' + a.course.time)
+        const dateB = new Date(b.course.date + 'T' + b.course.time)
+        return dateA.getTime() - dateB.getTime()
+      })
+      
+      if (upcomingBookings && upcomingBookings.length > 0) {
+        setNextCourse(upcomingBookings[0])
+      }
     } catch (error) {
-      console.error('Erreur lors du chargement des réservations:', error)
+      console.error('Erreur lors du chargement des données:', error)
     } finally {
       setLoading(false)
     }
@@ -96,27 +113,14 @@ export default function StudentPage() {
     })
   }
 
-  const getNextCourse = () => {
-    const upcomingBookings = bookings.filter(booking => {
-      const courseDate = new Date(booking.course.date)
-      return courseDate >= new Date() && booking.status !== 'cancelled'
-    })
-    
-    if (upcomingBookings.length === 0) return null
-    
-    upcomingBookings.sort((a, b) => new Date(a.course.date).getTime() - new Date(b.course.date).getTime())
-    return upcomingBookings[0]
-  }
-
   const handleLogout = () => {
-    router.push('/')
+    localStorage.removeItem('user')
+    router.push('/auth')
   }
 
   const handleBookCourse = () => {
     router.push('/booking')
   }
-
-  const nextCourse = getNextCourse()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,7 +135,7 @@ export default function StudentPage() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center text-sm text-gray-600">
                 <User className="h-4 w-4 mr-2" />
-                {userName}
+                {currentUser?.name || 'Utilisateur'}
               </div>
               <Button
                 variant="outline"
